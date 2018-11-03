@@ -169,7 +169,14 @@ class GomokuEnv(gym.Env):
         
         # Player play
         prev_state = self.state
-        self.state = self.state.act(action)
+
+        try:
+            self.state = self.state.act(action)
+        except IllegalMoveException as e:
+            print(str(e) + ' -> reward -1')
+            self.done = True
+            return self.state.board.encode(), -1., True, {'state': self.state}
+
         self.moves.append(self.state.board.last_coord)
         self.action_space.remove(action) # remove current action from action_space
         
@@ -293,7 +300,8 @@ class Board(object):
         coord = self.action_to_coord(action)
         # check if it's legal move
         if (b.board_state[coord[0]][coord[1]] != 0): # the action coordinate is not empty
-            raise error.Error("Action is illegal, position [%d, %d] on board is not empty" % ((coord[0]+1),(coord[1]+1)))
+            raise IllegalMoveException("Action is illegal, position [%d, %d] on board is not empty" % ((coord[0]+1),(coord[1]+1)))
+            # raise error.Error("Action is illegal, position [%d, %d] on board is not empty" % ((coord[0]+1),(coord[1]+1)))
         
         b.board_state[coord[0]][coord[1]] = gomoku_util.color_dict[color]
         b.move += 1 # move counter add 1
@@ -347,3 +355,8 @@ class Board(object):
         '''
         img = np.array(self.board_state) # shape [board_size, board_size]
         return img
+
+
+class IllegalMoveException(Exception):
+    pass
+
