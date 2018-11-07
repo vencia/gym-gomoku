@@ -1,7 +1,5 @@
 import gym
 from baselines import deepq
-import gym_gomoku
-
 
 def callback(lcl, _glb):
     # stop training if reward exceeds 199
@@ -11,8 +9,23 @@ def callback(lcl, _glb):
     return is_solved
 
 
+def register(id):
+    gym.envs.registration.register(
+        id=id,
+        entry_point='gym_gomoku.envs:GomokuEnv',
+        kwargs={
+            'player_color': 'black',
+            'opponent': 'random',  # beginner opponent policy has defend and strike rules
+            'board_size': 19,
+        },
+        nondeterministic=True,
+    )
+
+
 def main():
-    env = gym.make('Gomoku19x19-v0')  # default 'beginner' level opponent policy
+    game_id = 'Gomoku19x19-v0'
+    register(game_id)
+    env = gym.make(game_id)  # default 'beginner' level opponent policy
     act = deepq.learn(
         env,
         network='mlp',
